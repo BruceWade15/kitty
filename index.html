@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Touch the Kitty</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-container {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 90vw;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .kitten-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .kitten-container:hover {
+            transform: scale(1.02);
+        }
+
+        .kitten-container.pressed {
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .kitten-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
+            transition: opacity 0.2s ease;
+        }
+
+        .instruction {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #718096;
+            font-weight: 500;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .touch-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #4a5568;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .touch-indicator.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .instruction {
+                font-size: 1rem;
+            }
+            
+            .app-container {
+                padding: 15px;
+                margin: 10px;
+            }
+        }
+
+        /* Prevent text selection on touch */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="no-select">
+    <div class="app-container">
+        <h1 class="title">🐱 Touch the Kitty 🐱</h1>
+        
+        <div class="kitten-container" id="kittenContainer">
+            <img 
+                src="https://brucewade.co.za/wp-content/uploads/2025/08/Kitten-1.jpg" 
+                alt="Adorable Kitten" 
+                class="kitten-image" 
+                id="kittenImage"
+                loading="eager"
+            >
+            <div class="touch-indicator" id="touchIndicator">Touched! 😸</div>
+        </div>
+        
+        <p class="instruction">👆 Tap or touch the kitten above! 👆</p>
+    </div>
+
+    <script>
+        const kittenImage = document.getElementById('kittenImage');
+        const kittenContainer = document.getElementById('kittenContainer');
+        const touchIndicator = document.getElementById('touchIndicator');
+        
+        const originalImage = 'https://brucewade.co.za/wp-content/uploads/2025/08/Kitten-1.jpg';
+        const touchedImage = 'https://brucewade.co.za/wp-content/uploads/2025/08/Kitten-2.png';
+        
+        let isPressed = false;
+
+        // Preload the second image for smooth transition
+        const img = new Image();
+        img.src = touchedImage;
+
+        // Handle touch start (finger down)
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (!isPressed) {
+                isPressed = true;
+                kittenImage.src = touchedImage;
+                kittenContainer.classList.add('pressed');
+                touchIndicator.classList.add('show');
+                
+                // Add haptic feedback on supported devices
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+        }
+
+        // Handle touch end (finger up)
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            if (isPressed) {
+                isPressed = false;
+                kittenImage.src = originalImage;
+                kittenContainer.classList.remove('pressed');
+                touchIndicator.classList.remove('show');
+            }
+        }
+
+        // Touch events for mobile
+        kittenContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+        kittenContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
+        kittenContainer.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+        // Mouse events for desktop testing
+        kittenContainer.addEventListener('mousedown', handleTouchStart);
+        kittenContainer.addEventListener('mouseup', handleTouchEnd);
+        kittenContainer.addEventListener('mouseleave', handleTouchEnd);
+
+        // Prevent context menu on long press
+        kittenContainer.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Prevent image dragging
+        kittenImage.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+
+        // Handle image loading errors
+        kittenImage.addEventListener('error', function() {
+            console.log('Error loading kitten image');
+        });
+    </script>
+</body>
+</html>
